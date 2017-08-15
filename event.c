@@ -49,7 +49,7 @@ int event_base_dispatch(struct event_base *event_base)
 {
     while (1) {
         struct epoll_event *events = event_base->events;
-        int res = epoll_wait(event_base->epfd, events, event_base->nevents, 1000);
+        int res = epoll_wait(event_base->epfd, events, event_base->nevents, -1);
         int i = 0;
         for (; i < res; ++i) {
             struct event *ev = events[i].data.ptr;

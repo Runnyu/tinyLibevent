@@ -1,3 +1,6 @@
+#ifndef __TINY_LIBEVENT_EVENT_H__
+#define __TINY_LIBEVENT_EVENT_H__
+
 #define INITIAL_NEVENT 32
 #define MAX_NEVENT 4096
 
@@ -25,3 +28,5 @@ struct event *event_new(struct event_base *base, int fd, int flag, cb_funp, void
 int event_add(struct event *ev);
 int event_del(struct event *ev);
 int event_base_dispatch(struct event_base *event_base);
+
+#endif

@@ -15,16 +15,22 @@
 void socket_read_cb(int fd, short events, void *arg)
 {
     ssize_t n;
-    char buf[BUF_MAX_SIZE], ip[20];
-    struct sockaddr_in addr;
     socklen_t len;
-    getsockname(fd, (struct sockaddr *)&addr, &len);
+    struct sockaddr_in addr;
+    char buf[BUF_MAX_SIZE], ip[20];
+    getpeername(fd, (struct sockaddr *)&addr, &len);
     inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip)); 
 
-    while ((n = read(fd, buf, BUF_MAX_SIZE)) > 0) {
-        printf("rev from %s:%d msg: %s\n", ip, addr.sin_port, buf);
-        write(fd, buf, n);
+    n = read(fd, buf, BUF_MAX_SIZE);
+    if (n < 0 && errno == EAGAIN) return;
+    if (n < 0) {
+        printf("socket close %s:%d\n", ip, addr.sin_port);
+        close(fd);
+        return;
     }
+
+    printf("recv from %s:%d msg: %s\n", ip, addr.sin_port, buf);
+    write(fd, buf, n);
 }
 
 void accept_cb(int fd, short events, void *arg)
@@ -38,9 +44,9 @@ void accept_cb(int fd, short events, void *arg)
 
     char ip[20];
     struct sockaddr_in addr;
-    getsockname(fd, (struct sockaddr *)&addr, &len);
+    getpeername(sockfd, (struct sockaddr *)&addr, &len);
     inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip)); 
-    printf("acp from %s:%d\n", ip, addr.sin_port);
+    printf("acpt from %s:%d\n", ip, addr.sin_port);
 
     struct event_base *base = (struct event_base *)arg;
 	struct event *ev_client = event_new(base, sockfd, EPOLLIN | EPOLLET, socket_read_cb, NULL);
